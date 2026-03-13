@@ -1,4 +1,4 @@
-# Löschwasserförderung Rechner
+# Löschwasserförderung Rechner 🚒
 
 Interaktiver Rechner zur Planung von **Löschwasserförderung über lange Wegstrecken**.
 
@@ -24,7 +24,7 @@ Dieses Tool entstand im Rahmen einer Feuerwehr-Schulung zur **Löschwasserförde
 
 ---
 
-# Firefighting Water Supply Calculator
+# Firefighting Water Supply Calculator 🚒
 
 Interactive calculator for planning **long-distance firefighting water supply operations**.
 
@@ -43,6 +43,14 @@ The tool is designed as a **training aid for pump operators** and visualizes how
 ## Try it online
 
 https://preusskathrin-eng.github.io/loeschwasser-rechner/
+
+---
+
+## Screenshot
+
+<p align="center">
+<img src="gesamtdruckverlustrechner.png" width="400">
+</p>
 
 ---
 
