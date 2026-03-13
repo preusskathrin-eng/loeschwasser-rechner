@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>Löschwasserförderung Rechner</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:40px;
+background:#f4f4f4;
+}
+
+h1{
+margin-bottom:30px;
+}
+
+input[type=range]{
+width:500px;
+display:block;
+margin-top:6px;
+}
+
+.row{
+margin-bottom:25px;
+}
+
+.value{
+font-weight:bold;
+margin-left:10px;
+}
+
+.result{
+margin-top:30px;
+font-size:20px;
+background:white;
+padding:15px;
+width:520px;
+border-radius:6px;
+}
+
+#line{
+margin-top:30px;
+height:100px;
+border-bottom:4px solid #444;
+position:relative;
+background:white;
+border-radius:6px;
+display:inline-block;
+}
+
+.label{
+position:absolute;
+top:70px;
+font-size:12px;
+}
+
+#hose{
+height:14px;
+background:#2b8cff;
+margin-top:6px;
+border-radius:6px;
+width:200px;
+transition:width 0.2s;
+}
+
+#couplings{
+position:relative;
+height:10px;
+margin-top:-12px;
+}
+
+.cpl{
+position:absolute;
+width:4px;
+height:14px;
+background:#1a5fd0;
+}
+
+#visualization{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 3px 8px rgba(0,0,0,0.15);
+margin-top:15px;
+margin-bottom:30px;
+display:inline-block;
+}
+
+#heightProfile{
+display:block;
+margin-top:20px;
+background:white;
+border-radius:10px;
+padding:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Löschwasserförderung Rechner</h1>
+
+
+<div class="row">
+Förderstrecke:
+<input type="number" id="lengthInput" min="100" max="3000" value="500" step="1">
+m
+<br>
+<input type="range" min="100" max="3000" value="500" id="length" class="slider">
+</div>
+
+
+<div class="row">
+Höhenunterschied:
+<input type="number" id="heightInput" value="0" min="0" max="200" step="1"> 
+m
+<br>
+<input type="range" id="height" min="0" max="200" step="1" value="0">
+</div>
+
+
+<div class="row">
+Förderstrom:
+<input type="number" id="flowInput" value="800" min="100" max="1200" step="100"> l/min
+<br>
+<input type="range" id="flow" min="100" max="1200" step="100" value="800">
+</div>
+
+
+<div class="row">
+Pumpendruck:
+<input type="number" id="pumpInput" value="8" min="1" max="15" step="0.5"> bar
+<br>
+<input type="range" id="pump" min="1" max="15" step="0.5" value="8">
+</div>
+
+
+<div class="result" id="result"></div>
+
+<div id="visualization">
+  <div id="line"></div>
+  <div id="hose"></div>
+  <div id="couplings"></div>
+</div>
+
+<canvas id="heightProfile" width="900" height="120"></canvas>
+
+<script>
+
+function calc(){
+
+let L = Number(document.getElementById("lengthInput").value)
+let H = Number(document.getElementById("height").value)
+let Q = Number(document.getElementById("flow").value)
+let pump = Number(document.getElementById("pump").value)
+let hoses = Math.ceil(L/20)
+
+
+let reibFactor
+
+if(Q <= 200) reibFactor = 0
+else if(Q <= 400) reibFactor = 0.3
+else if(Q <= 600) reibFactor = 0.7
+else if(Q <= 800) reibFactor = 1.1
+else if(Q <= 1000) reibFactor = 1.7
+else reibFactor = 2.5
+
+let reib = reibFactor * (L/100)
+
+let hoehe = H/10
+
+let total = reib + hoehe
+
+let pumps = Math.ceil(total / pump)
+
+
+
+document.getElementById("result").innerHTML=
+
+"Reibungsverlust: "+reib.toFixed(2)+" bar<br>"+
+"Höhenverlust: "+hoehe.toFixed(2)+" bar<br>"+
+"Gesamtdruck: "+total.toFixed(2)+" bar<br>"+
+"Benötigte Pumpen: "+pumps+"<br>"+
+"Benötigte B-Schläuche: "+hoses
+
+
+drawPumps(pumps,L)
+drawHose(L)
+drawHeightProfile(L,H)
+}
+
+function drawPumps(pumps,length){
+
+let line=document.getElementById("line")
+
+line.innerHTML=""
+
+let maxLength = 3000
+let width = (length/maxLength) * 900
+line.style.width = (width + 40) + "px"
+
+let water=document.createElement("div")
+water.innerHTML="🌊"
+water.style.position="absolute"
+water.style.left="0px"
+water.style.top="-10px"
+water.style.fontSize="30px"
+line.appendChild(water)
+
+
+for(let i=0;i<pumps;i++){
+
+let p=document.createElement("div")
+
+p.innerHTML="🚒"
+
+p.style.position="absolute"
+
+let pos = ((i+1)/(pumps+1)) * width
+
+p.style.left=pos+"px"
+
+p.style.top="-10px"
+
+p.style.fontSize="30px"
+
+line.appendChild(p)
+
+}
+
+let fire=document.createElement("div")
+fire.innerHTML="🔥"
+fire.style.position="absolute"
+fire.style.left = width + "px"
+fire.style.top="-10px"
+fire.style.fontSize="30px"
+
+line.appendChild(fire)
+
+}
+
+document.querySelectorAll("input").forEach(i=>{
+i.addEventListener("input",calc)
+})
+
+function drawHose(length){
+
+let hose=document.getElementById("hose")
+let couplings=document.getElementById("couplings")
+
+let maxLength=3000
+let maxWidth=900
+
+let width=(length/maxLength)*maxWidth
+
+hose.style.width=width+"px"
+
+couplings.innerHTML=""
+
+let hoseCount=Math.floor(length/20)
+
+for(let i=1;i<hoseCount;i++){
+
+let c=document.createElement("div")
+
+c.className="cpl"
+
+let pos=(i/hoseCount)*width
+
+c.style.left=pos+"px"
+
+couplings.appendChild(c)
+
+}
+
+}
+
+function drawHeightProfile(length,height){
+
+let canvas = document.getElementById("heightProfile")
+let ctx = canvas.getContext("2d")
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+let maxLength = 3000
+let width = (length/maxLength)*900
+
+let startY = canvas.height - 30
+
+let maxHeight = 100   // maximaler Höhenregler
+let usableHeight = canvas.height - 40
+
+let endY = startY - (height / maxHeight) * usableHeight
+endY = Math.max(20, endY)
+
+ctx.beginPath()
+ctx.moveTo(0,startY)
+ctx.lineTo(width - 10, endY)
+
+ctx.lineWidth = 6
+ctx.lineCap = "round"
+ctx.strokeStyle = "#2e7d32"
+ctx.stroke()
+
+ctx.fillStyle="black"
+ctx.font="12px Arial"
+
+ctx.fillText("Quelle",0,startY+15)
+ctx.fillText("Brandstelle",width-80,endY-10)
+
+}
+
+/* ----------- Slider + Input Synchronisation ----------- */
+
+const lengthSlider = document.getElementById("length")
+const lengthInput = document.getElementById("lengthInput")
+
+lengthSlider.addEventListener("input", () => {
+  lengthInput.value = lengthSlider.value
+  calc()
+})
+
+lengthInput.addEventListener("input", () => {
+  lengthSlider.value = lengthInput.value
+  calc()
+})
+
+
+const heightSlider = document.getElementById("height")
+const heightInput = document.getElementById("heightInput")
+
+heightSlider.addEventListener("input", () => {
+  heightInput.value = heightSlider.value
+  calc()
+})
+
+heightInput.addEventListener("input", () => {
+  heightSlider.value = heightInput.value
+  calc()
+})
+
+
+const flowSlider = document.getElementById("flow")
+const flowInput = document.getElementById("flowInput")
+
+flowSlider.addEventListener("input", () => {
+  flowInput.value = flowSlider.value
+  calc()
+})
+
+flowInput.addEventListener("input", () => {
+  flowSlider.value = flowInput.value
+  calc()
+})
+
+
+const pumpSlider = document.getElementById("pump")
+const pumpInput = document.getElementById("pumpInput")
+
+pumpSlider.addEventListener("input", () => {
+  pumpInput.value = pumpSlider.value
+  calc()
+})
+
+pumpInput.addEventListener("input", () => {
+  pumpSlider.value = pumpInput.value
+  calc()
+})
+
+
+document.querySelectorAll("input").forEach(i=>{
+  i.addEventListener("input",calc)
+})
+
+calc()
+
+</script>
+
+
+</body>
+</html>
